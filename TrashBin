@@ -1,0 +1,482 @@
+#define motorL1 3  //motorL:控制左边移动杆，向左走表正转，向右走表反转（假设电机装左边）
+#define motorL2 9
+#define motorR1 10  //motorR:控制右边移动杆，向左走表正转，向右走表反转（假设电机装左边）
+#define motorR2 11
+#define BumperL 8  //碰撞开关L:控制左边移动杆停止
+#define BumperR 12  //碰撞开关R:控制右边移动杆停止
+#define BumperM 13 //碰撞开关M:控制两移动杆相撞停止
+#define SPEED   153  // 电机转速(120rpm)
+#define TIME_COUNTER 6   // 遇碰撞开关后往回走的次数
+#define DELAY_TIME  50  // 延时 50 毫秒
+#define TIME_RETURN 500   // 遇碰撞开关后往回走的时间
+int lastState = 4;
+
+
+void setup() 
+{
+  pinMode(motorL1, OUTPUT);
+  pinMode(motorL2, OUTPUT);
+  pinMode(motorR1, OUTPUT);
+  pinMode(motorR2, OUTPUT);
+  pinMode(BumperL, INPUT);
+  pinMode(BumperR, INPUT);
+  pinMode(BumperM, INPUT);
+  Serial.begin(9600);
+  //换垃圾袋(change garbage bags)
+  int motorLCounter = 0;
+  int motorRCounter = 0;
+  bool  bmotorLStop = false;
+  bool  bmotorRStop = false;
+  analogWrite(motorL1,SPEED);
+  digitalWrite(motorL2,LOW);
+  digitalWrite(motorR1,LOW);
+  analogWrite(motorR2,SPEED);
+  while (true) {
+    delay(DELAY_TIME);
+    if (digitalRead(BumperL)==LOW)
+    {
+      digitalWrite(motorL1,LOW);
+      analogWrite(motorL2,SPEED);
+      motorLCounter++;
+    }
+    if (motorLCounter > 0) {
+      motorLCounter++;
+    }
+    if (motorLCounter > 50)
+    {
+      digitalWrite(motorL1,LOW);
+      digitalWrite(motorL2,LOW);
+      bmotorLStop = true;
+    }
+    
+  if (digitalRead(BumperR)==LOW)
+    {
+      analogWrite(motorR1,SPEED);
+      digitalWrite(motorR2,LOW);
+      motorRCounter++; 
+    }
+    if (motorRCounter > 0) {
+      motorRCounter++;
+    }
+    if (motorRCounter > 50)
+    {
+      digitalWrite(motorR1,LOW);
+      digitalWrite(motorR2,LOW);
+      bmotorRStop = true;
+    }
+    if (bmotorLStop == true && bmotorRStop == true) 
+    {
+      lastState = 4;
+      break;
+    }  
+  }
+}
+
+void loop() 
+{
+  String trash = "";
+  char val = 0;
+  bool  bmotorLStop = false;
+  bool  bmotorRStop = false;
+  int motorLCounter = 0;
+  int motorRCounter = 0;
+  
+  if(Serial.available()>0) 
+  {
+    int reads = 0;
+    while (Serial.available()>0)
+    {
+      trash += char(Serial.read());
+      delay(2);
+      reads++;
+    }
+    if (reads > 1) {
+      val = trash.charAt(1); 
+    }
+    else {
+      delay(DELAY_TIME);
+    }
+  }
+ 
+  if(val == '1') //干垃圾：两个移动杆都去左边(dry garbage)
+    {
+      switch (lastState) {
+        case 1: //原先是干垃圾(dry garbage previously)
+          break;
+        case 2: //原先是湿垃圾(wet garbage previously)
+          analogWrite(motorR1, SPEED);
+          digitalWrite(motorR2, LOW);
+          while(true) {
+            delay(DELAY_TIME);
+            if (digitalRead(BumperM)==LOW)
+            {
+              digitalWrite(motorR1,LOW);
+              analogWrite(motorR2,SPEED);
+              delay(TIME_RETURN);
+              digitalWrite(motorR1,LOW);
+              digitalWrite(motorR2,LOW);
+              break;
+            }
+          }
+          break;
+        case 3: //原先是可回收垃圾(recycle garbage previously)
+          analogWrite(motorL1, SPEED);
+          digitalWrite(motorL2, LOW);
+          delay(2000);
+          analogWrite(motorR1, SPEED);
+          digitalWrite(motorR2, LOW);
+          while(true) {
+            delay(DELAY_TIME);
+            if (digitalRead(BumperL)==LOW)
+            {
+              digitalWrite(motorL1,LOW);
+              analogWrite(motorL2,SPEED);
+              if (motorLCounter == 0) {
+                motorLCounter++;
+              }
+            }
+            if (motorLCounter > 0) {
+              motorLCounter++;
+            }
+            if (motorLCounter > TIME_COUNTER)  // 往回转0.6秒
+            {
+                digitalWrite(motorL1,LOW);
+                digitalWrite(motorL2,LOW);
+                bmotorLStop = true;
+            }
+            if (digitalRead(BumperM)==LOW)
+            {
+              digitalWrite(motorR1,LOW);
+              analogWrite(motorR2,SPEED);
+              if (motorRCounter == 0) {
+                motorRCounter++;
+              }
+            }
+            if (motorRCounter > 0) {
+              motorRCounter++;
+            }
+            if (motorRCounter > TIME_COUNTER)  // 往回转0.6秒
+            {
+                digitalWrite(motorR1,LOW);
+                digitalWrite(motorR2,LOW);
+                bmotorRStop = true;
+            }
+            if (bmotorLStop == true && bmotorRStop == true) 
+            {
+              break;
+            }
+          }
+          break;
+        case 4: //原先是换垃圾袋(change garbage bags)
+          analogWrite(motorL1, SPEED);
+          digitalWrite(motorL2, LOW);
+          analogWrite(motorR1, SPEED);
+          digitalWrite(motorR2, LOW);
+          while(true) {
+            delay(DELAY_TIME);
+            if (digitalRead(BumperL)==LOW)
+            {
+              digitalWrite(motorL1,LOW);
+              analogWrite(motorL2,SPEED);
+              if (motorLCounter == 0) {
+                motorLCounter++;
+              }
+            }
+            if (motorLCounter > 0) {
+              motorLCounter++;
+            }
+            if (motorLCounter > TIME_COUNTER)  // 往回转0.6秒
+            {
+                digitalWrite(motorL1,LOW);
+                digitalWrite(motorL2,LOW);
+                bmotorLStop = true;
+            }
+            if (digitalRead(BumperM)==LOW)
+            {
+              digitalWrite(motorR1,LOW);
+              analogWrite(motorR2,SPEED);
+              if (motorRCounter == 0) {
+                motorRCounter++;
+              }
+            }
+            if (motorRCounter > 0) {
+              motorRCounter++;
+            }
+            if (motorRCounter > TIME_COUNTER)  // 往回转0.6秒
+            {
+                digitalWrite(motorR1,LOW);
+                digitalWrite(motorR2,LOW);
+                bmotorRStop = true;
+            }
+            if (bmotorLStop == true && bmotorRStop == true) 
+            {
+              break;
+            }
+          }
+          break;
+        default:
+          break;                     
+      }
+      lastState = 1;
+    }
+    
+    else if(val == '2') //湿垃圾:左移动杆朝左，右移动杆朝右(wet garbage)
+    {
+      switch (lastState) {
+        case 2: //原先是湿垃圾(wet barbage previously)
+          break;
+        case 1: //原先是干垃圾(dry garbage previously)
+          digitalWrite(motorR1, LOW);
+          analogWrite(motorR2, SPEED);
+          while(true) {
+            delay(DELAY_TIME);
+            if (digitalRead(BumperR)==LOW)
+            {
+              analogWrite(motorR1,SPEED);
+              digitalWrite(motorR2,LOW);
+              delay(TIME_RETURN);
+              digitalWrite(motorR1,LOW);
+              digitalWrite(motorR2,LOW);
+              break;
+            }
+          }
+          break;
+         case 3: //原先是可回收垃圾(recycle garbage previously)
+          analogWrite(motorL1, SPEED);
+          digitalWrite(motorL2, LOW);
+          while(true) {
+            delay(DELAY_TIME);
+            if (digitalRead(BumperL)==LOW)
+            {
+              digitalWrite(motorL1,LOW);
+              analogWrite(motorL2,SPEED);
+              delay(TIME_RETURN);
+              digitalWrite(motorL1,LOW);
+              digitalWrite(motorL2,LOW);
+              break;
+            }
+          }
+          break;
+        case 4: //原先是换垃圾袋(change garbage bags previously)
+          analogWrite(motorL1, SPEED);
+          digitalWrite(motorL2, LOW);
+          digitalWrite(motorR1, LOW);
+          analogWrite(motorR2, SPEED);
+          while(true) {
+            delay(DELAY_TIME);
+            if (digitalRead(BumperL)==LOW)
+            {
+              digitalWrite(motorL1,LOW);
+              analogWrite(motorL2,SPEED);
+              if (motorLCounter == 0) {
+                motorLCounter++;
+              }
+            }
+            if (motorLCounter > 0) {
+              motorLCounter++;
+            }
+            if (motorLCounter > TIME_COUNTER)  // 往回转0.6秒
+            {
+                digitalWrite(motorL1,LOW);
+                digitalWrite(motorL2,LOW);
+                bmotorLStop = true;
+            }
+            if (digitalRead(BumperR)==LOW)
+            {
+              digitalWrite(motorR1,SPEED);
+              analogWrite(motorR2,LOW);
+              if (motorRCounter == 0) {
+                motorRCounter++;
+              }
+            }
+            if (motorRCounter > 0) {
+              motorRCounter++;
+            }
+            if (motorRCounter > TIME_COUNTER)  // 往回转0.6秒
+            {
+                digitalWrite(motorR1,LOW);
+                digitalWrite(motorR2,LOW);
+                bmotorRStop = true;
+            }
+            if (bmotorLStop == true && bmotorRStop == true) 
+            {
+              break;
+            }
+          }
+          break;
+        default:
+          break;                     
+      }
+      lastState = 2;
+    }
+    
+   else if(val == '3') //可回收垃圾: 两个移动杆都在右边
+   {
+      switch (lastState) {
+        case 3: //原先是可回收垃圾(recycle garbage previously)
+          break;
+        case 2: //原先是湿垃圾(wet barbage previously)
+          digitalWrite(motorL1, LOW);
+          analogWrite(motorL2, SPEED);
+          while(true) {
+            delay(DELAY_TIME);
+            if (digitalRead(BumperM)==LOW)
+            {
+              analogWrite(motorL1,SPEED);
+              digitalWrite(motorL2,LOW);
+              delay(TIME_RETURN);
+              digitalWrite(motorL1,LOW);
+              digitalWrite(motorL2,LOW);
+              break;
+            }
+          }
+          break;
+        case 1: //原先是干垃圾(dry garbage previously)
+          digitalWrite(motorR1, LOW);
+          analogWrite(motorR2, SPEED);
+          delay(100);
+          digitalWrite(motorL1, LOW);
+          analogWrite(motorL2, SPEED);
+          while(true) {
+            delay(DELAY_TIME);
+            if (digitalRead(BumperR)==LOW)
+            {
+              analogWrite(motorR1,SPEED);
+              digitalWrite(motorR2,LOW);
+              if (motorRCounter == 0) {
+                motorRCounter++;
+              }
+            }
+            if (motorRCounter > 0) {
+              motorRCounter++;
+            }
+            if (motorRCounter > TIME_COUNTER)  // 往回转0.6秒
+            {
+                digitalWrite(motorR1,LOW);
+                digitalWrite(motorR2,LOW);
+                bmotorRStop = true;
+            }
+            if (digitalRead(BumperM)==LOW)
+            {
+              analogWrite(motorL1,SPEED);
+              digitalWrite(motorL2,LOW);
+              if (motorLCounter == 0) {
+                motorLCounter++;
+              }
+            }
+            if (motorLCounter > 0) {
+              motorLCounter++;
+            }
+            if (motorLCounter > TIME_COUNTER)  // 往回转0.6秒
+            {
+                digitalWrite(motorL1,LOW);
+                digitalWrite(motorL2,LOW);
+                bmotorLStop = true;
+            }
+            if (bmotorRStop == true && bmotorLStop == true) 
+            {
+              break;
+            }
+          }
+          break;
+        case 4: //原先是换垃圾袋(change garbage bags previously)
+          digitalWrite(motorL1, LOW);
+          analogWrite(motorL2, SPEED);
+          digitalWrite(motorR1, LOW);
+          analogWrite(motorR2, SPEED);
+          while(true) {
+            delay(DELAY_TIME);
+            if (digitalRead(BumperR)==LOW)
+            {
+              analogWrite(motorR1,SPEED);
+              digitalWrite(motorR2,LOW);
+              if (motorRCounter == 0) {
+                motorRCounter++;
+              }
+            }
+            if (motorRCounter > 0) {
+              motorRCounter++;
+            }
+            if (motorRCounter > TIME_COUNTER)  // 往回转0.6秒
+            {
+                digitalWrite(motorR1,LOW);
+                digitalWrite(motorR2,LOW);
+                bmotorRStop = true;
+            }
+            if (digitalRead(BumperM)==LOW)
+            {
+              analogWrite(motorL1,SPEED);
+              digitalWrite(motorL2,LOW);
+              if (motorLCounter == 0) {
+                motorLCounter++;
+              }
+            }
+            if (motorLCounter > 0) {
+              motorLCounter++;
+            }
+            if (motorLCounter > TIME_COUNTER)  // 往回转0.6秒
+            {
+                digitalWrite(motorL1,LOW);
+                digitalWrite(motorL2,LOW);
+                bmotorLStop = true;
+            }
+            if (bmotorLStop == true && bmotorRStop == true) 
+            {
+              break;
+            }
+          }
+          break;
+        default:
+          break;                     
+      }
+      lastState = 3;
+   }
+   
+   else if(val == '4') //换垃圾袋：两杆均匀分布；
+   {
+      switch (lastState) {
+        case 4: //原先是换垃圾袋(change garbage bags previously)
+          break;
+        case 1: //原先是干垃圾(dry garbage previously)
+          digitalWrite(motorR1, LOW);
+          analogWrite(motorR2, SPEED);
+          delay(3000);
+          digitalWrite(motorL1, LOW);
+          analogWrite(motorL2, SPEED);
+          delay(3000);
+          digitalWrite(motorL1,LOW);
+          digitalWrite(motorL2,LOW);
+          digitalWrite(motorR1,LOW);
+          digitalWrite(motorR2,LOW);
+          break;
+        case 2: //原先是湿垃圾(wet barbage previously)
+          digitalWrite(motorL1, LOW);
+          analogWrite(motorL2, SPEED);
+          analogWrite(motorR1, SPEED);
+          digitalWrite(motorR2, LOW);
+          delay(3000);
+          digitalWrite(motorL1,LOW);
+          digitalWrite(motorL2,LOW);
+          digitalWrite(motorR1,LOW);
+          digitalWrite(motorR2,LOW);          
+          break;
+        case 3: //原先是可回收垃圾(recycle garbage previously)
+          analogWrite(motorL1, SPEED);
+          digitalWrite(motorL2, LOW);
+          delay(3000);
+          analogWrite(motorR1, SPEED);
+          digitalWrite(motorR2, LOW);
+          delay(3000);
+          digitalWrite(motorL1,LOW);
+          digitalWrite(motorL2,LOW);
+          digitalWrite(motorR1,LOW);
+          digitalWrite(motorR2,LOW);          
+          break;
+        default:
+          break;                     
+      }
+      lastState = 4;    
+   }            
+ }
+
+     

@@ -1,0 +1,12 @@
+
+x= (int(input ("please input number1:")), int(input("please input number2:")));
+x1=min(x);
+x2=max(x);
+y=[];
+for n in range (x1,x2+1):
+    for i in range(2,n-1):
+        if n%i == 0:
+            break
+    else:
+        y.append(n);
+print (y);

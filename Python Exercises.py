@@ -25,4 +25,42 @@ unit = str(input('请输入单位 '))
 inch_cm(length,unit)
 '''
 
-#
+#分数转换成等级
+def score_grade(score):
+    if score >= 90:
+        grade = 'A'
+    elif score >=80:
+        grade = 'B'
+    elif score >=70:
+        grade = 'C'
+    elif score >=60:
+        grade = 'D'
+    else:
+        grade = 'E'
+    print ('你的成绩为：', grade)
+'''test code
+score = float(input('输入你的分数'))
+score_grade(score)
+'''
+
+#猜数字游戏
+import random
+def guess_number():
+    answer = random.randint(1, 100)
+    counter = 0
+    while True:
+        guess = int(input('请在1-99内猜一个整数'))
+        counter +=1
+        if guess > answer:
+            print ('太大了')
+        elif guess < answer:
+            print ('太小了')
+        else:
+            print ('猜对了，共猜了%d次' %counter)
+            break
+    if counter >7:
+        print ('你的智商堪忧啊')
+'''test code
+guess_number()
+'''
+

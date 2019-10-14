@@ -64,3 +64,47 @@ def guess_number():
 guess_number()
 '''
 
+#九九乘法表
+def multiply99(number):
+    for i in range(1,number+1):
+        for j in range(1,i+1):
+            print ('%dx%d=%d' %(i,j,i*j), end='\t')
+        print()
+'''test code
+multiply99(9)
+'''
+
+#判断质数
+import math
+def prime(number):
+    x=int(math.sqrt(number))
+    is_prime = True
+    for i in range(2,x):
+        if number%i ==0:
+            is_prime = False
+            break
+    if is_prime and number!=1:
+        print ('%d是素数' % number)
+    else:
+        print ('%d不是素数' % number)
+'''test code
+number=int(input('输入一个正整数：'))
+prime(number)
+'''
+
+#求两个数的最大公约数和最小公倍数
+def divisor_multiple(x,y):
+    if x > y:
+        x,y = y,x
+    for factor in range(x,0,-1):
+        if x % factor == 0 and y % factor == 0:
+            print ('%d和%d的最大公约数是%d' % (x,y,factor))
+            print ('%d和%d的最小公倍数是%d' % (x,y,(x*y)//factor))
+            break
+x= int(input('第一个正整数'))
+y= int(input('第二个正整数'))
+divisor_multiple(x,y)
+
+
+
+

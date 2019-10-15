@@ -101,9 +101,28 @@ def divisor_multiple(x,y):
             print ('%d和%d的最大公约数是%d' % (x,y,factor))
             print ('%d和%d的最小公倍数是%d' % (x,y,(x*y)//factor))
             break
+'''
 x= int(input('第一个正整数'))
 y= int(input('第二个正整数'))
 divisor_multiple(x,y)
+'''
+
+#打印图形
+def stars(row):
+    for i in range(row+1):
+        for j in range(i):
+            print ('*',end='')
+        print()
+    for i in range(row):
+        for j in range(row):
+            if j<row-i-1:
+                print (' ', end='')
+            else:
+                print ('*', end='')
+        print()
+row=int(input('要几行：'))
+stars(row)
+
 
 
 

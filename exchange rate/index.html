@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    
+    <!-- 微信浏览器兼容性 -->
+    <meta name="x5-orientation" content="portrait">
+    <meta name="x5-fullscreen" content="true">
+    <meta name="x5-page-mode" content="app">
+    
+    <!-- 分享优化 -->
+    <meta property="og:title" content="汇率查询器">
+    <meta property="og:description" content="实时汇率查询，支持多种货币转换和历史趋势图表">
+    <meta property="og:type" content="website">
+    
+    <title>汇率查询器 - 实时汇率转换</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💱</text></svg>">
+    
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-exchange-alt"></i> 汇率查询器</h1>
+            <p class="subtitle">实时汇率查询 - 数据每分钟更新</p>
+        </header>
+
+        <main class="main-content">
+            <!-- 汇率转换器 -->
+            <section class="converter-section">
+                <h2>汇率转换</h2>
+                <div class="converter">
+                    <div class="input-group">
+                        <label for="amount">金额</label>
+                        <input type="number" id="amount" placeholder="输入金额" value="1" min="0" step="0.01">
+                    </div>
+                    <div class="currency-selectors">
+                        <div class="currency-group">
+                            <label for="from-currency">从</label>
+                            <select id="from-currency">
+                                <option value="USD">美元 (USD)</option>
+                                <option value="SGD">新元 (SGD)</option>
+                                <option value="EUR">欧元 (EUR)</option>
+                                <option value="CAD">加元 (CAD)</option>
+                                <option value="CNY">人民币 (CNY)</option>
+                                <option value="JPY">日元 (JPY)</option>
+                                <option value="GBP">英镑 (GBP)</option>
+                                <option value="AUD">澳元 (AUD)</option>
+                                <option value="HKD">港币 (HKD)</option>
+                                <option value="THB">泰铢 (THB)</option>
+                            </select>
+                        </div>
+                        <button class="swap-btn" id="swap-currencies">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
+                        <div class="currency-group">
+                            <label for="to-currency">到</label>
+                            <select id="to-currency">
+                                <option value="CNY" selected>人民币 (CNY)</option>
+                                <option value="USD">美元 (USD)</option>
+                                <option value="SGD">新元 (SGD)</option>
+                                <option value="EUR">欧元 (EUR)</option>
+                                <option value="CAD">加元 (CAD)</option>
+                                <option value="JPY">日元 (JPY)</option>
+                                <option value="GBP">英镑 (GBP)</option>
+                                <option value="AUD">澳元 (AUD)</option>
+                                <option value="HKD">港币 (HKD)</option>
+                                <option value="THB">泰铢 (THB)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="result">
+                        <div class="result-amount" id="result-amount">0.00</div>
+                        <div class="exchange-rate" id="exchange-rate">1 USD = 0.00 CNY</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 默认汇率显示 -->
+            <section class="rates-section">
+                <h2>主要汇率 (对人民币)</h2>
+                <div class="rates-grid" id="rates-grid">
+                    <div class="rate-card loading" data-from="USD" data-to="CNY">
+                        <div class="rate-header">
+                            <span class="currency-pair">USD/CNY</span>
+                            <span class="flag">🇺🇸→🇨🇳</span>
+                        </div>
+                        <div class="rate-value">加载中...</div>
+                        <div class="rate-change">--</div>
+                    </div>
+                    <div class="rate-card loading" data-from="SGD" data-to="CNY">
+                        <div class="rate-header">
+                            <span class="currency-pair">SGD/CNY</span>
+                            <span class="flag">🇸🇬→🇨🇳</span>
+                        </div>
+                        <div class="rate-value">加载中...</div>
+                        <div class="rate-change">--</div>
+                    </div>
+                    <div class="rate-card loading" data-from="EUR" data-to="CNY">
+                        <div class="rate-header">
+                            <span class="currency-pair">EUR/CNY</span>
+                            <span class="flag">🇪🇺→🇨🇳</span>
+                        </div>
+                        <div class="rate-value">加载中...</div>
+                        <div class="rate-change">--</div>
+                    </div>
+                    <div class="rate-card loading" data-from="CAD" data-to="CNY">
+                        <div class="rate-header">
+                            <span class="currency-pair">CAD/CNY</span>
+                            <span class="flag">🇨🇦→🇨🇳</span>
+                        </div>
+                        <div class="rate-value">加载中...</div>
+                        <div class="rate-change">--</div>
+                    </div>
+                    <div class="rate-card loading" data-from="THB" data-to="CNY">
+                        <div class="rate-header">
+                            <span class="currency-pair">THB/CNY</span>
+                            <span class="flag">🇹🇭→🇨🇳</span>
+                        </div>
+                        <div class="rate-value">加载中...</div>
+                        <div class="rate-change">--</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 历史汇率图表 -->
+            <section class="chart-section">
+                <h2>汇率历史趋势</h2>
+                <div class="chart-controls">
+                    <div class="chart-selector">
+                        <label for="chart-currency-pair">选择货币对:</label>
+                        <select id="chart-currency-pair">
+                            <option value="USD/CNY">美元/人民币 (USD/CNY)</option>
+                            <option value="SGD/CNY">新元/人民币 (SGD/CNY)</option>
+                            <option value="EUR/CNY">欧元/人民币 (EUR/CNY)</option>
+                            <option value="CAD/CNY">加元/人民币 (CAD/CNY)</option>
+                            <option value="THB/CNY">泰铢/人民币 (THB/CNY)</option>
+                            <option value="JPY/CNY">日元/人民币 (JPY/CNY)</option>
+                            <option value="GBP/CNY">英镑/人民币 (GBP/CNY)</option>
+                            <option value="AUD/CNY">澳元/人民币 (AUD/CNY)</option>
+                            <option value="HKD/CNY">港币/人民币 (HKD/CNY)</option>
+                        </select>
+                    </div>
+                    <div class="chart-period">
+                        <label for="chart-period">时间范围:</label>
+                        <select id="chart-period">
+                            <option value="1M">近1个月</option>
+                            <option value="3M">近3个月</option>
+                            <option value="6M">近6个月</option>
+                            <option value="1Y" selected>近1年</option>
+                        </select>
+                    </div>
+                    <button class="chart-refresh-btn" id="chart-refresh-btn">
+                        <i class="fas fa-chart-line"></i> 更新图表
+                    </button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="exchange-rate-chart"></canvas>
+                    <div class="chart-loading" id="chart-loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>正在加载历史数据...</p>
+                    </div>
+                </div>
+                <div class="chart-info">
+                    <div class="chart-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">当前汇率:</span>
+                            <span class="stat-value" id="current-rate">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">期间最高:</span>
+                            <span class="stat-value" id="highest-rate">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">期间最低:</span>
+                            <span class="stat-value" id="lowest-rate">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">变化幅度:</span>
+                            <span class="stat-value" id="change-rate">--</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 更新时间 -->
+            <div class="update-info">
+                <p>最后更新时间: <span id="last-update">--</span></p>
+                <button class="refresh-btn" id="refresh-btn">
+                    <i class="fas fa-sync-alt"></i> 刷新数据
+                </button>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 汇率查询器 | 数据来源于公开API</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 

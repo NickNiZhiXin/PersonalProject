@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网页计算器</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="calculator">
+            <div class="display">
+                <div class="previous-operand" id="previous-operand"></div>
+                <div class="current-operand" id="current-operand">0</div>
+            </div>
+            <div class="buttons">
+                <button class="btn btn-clear" data-clear>AC</button>
+                <button class="btn btn-operator" data-delete>⌫</button>
+                <button class="btn btn-operator" data-operation>%</button>
+                <button class="btn btn-operator" data-operation>÷</button>
+                
+                <button class="btn btn-number" data-number>7</button>
+                <button class="btn btn-number" data-number>8</button>
+                <button class="btn btn-number" data-number>9</button>
+                <button class="btn btn-operator" data-operation>×</button>
+                
+                <button class="btn btn-number" data-number>4</button>
+                <button class="btn btn-number" data-number>5</button>
+                <button class="btn btn-number" data-number>6</button>
+                <button class="btn btn-operator" data-operation>-</button>
+                
+                <button class="btn btn-number" data-number>1</button>
+                <button class="btn btn-number" data-number>2</button>
+                <button class="btn btn-number" data-number>3</button>
+                <button class="btn btn-operator" data-operation>+</button>
+                
+                <button class="btn btn-number btn-zero" data-number>0</button>
+                <button class="btn btn-number" data-number>.</button>
+                <button class="btn btn-equals" data-equals>=</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

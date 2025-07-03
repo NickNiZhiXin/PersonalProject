@@ -74,10 +74,12 @@ class CurrencyConverter {
     // 加载默认汇率
     async loadDefaultRates() {
         try {
+            console.log('开始加载默认汇率...');
             this.showLoading();
             
             // 获取人民币汇率数据
             const cnyRates = await this.fetchRates('CNY');
+            console.log('获取到汇率数据:', cnyRates);
             
             // 更新默认汇率显示
             this.updateDefaultRateCards(cnyRates);
@@ -88,15 +90,40 @@ class CurrencyConverter {
             this.hideLoading();
             this.updateLastUpdateTime();
             
+            // 在微信环境中显示成功消息
+            if (this.isWeChatBrowser()) {
+                this.showSuccess('汇率数据加载完成');
+            }
+            
+            console.log('默认汇率加载完成');
+            
         } catch (error) {
             console.error('加载默认汇率失败:', error);
-            this.showError('加载汇率数据失败，请刷新页面重试');
+            
+            // 即使出错也要显示备用数据
+            const fallbackRates = this.getFallbackRates('CNY');
+            this.updateDefaultRateCards(fallbackRates);
+            this.convertCurrency();
+            this.hideLoading();
+            this.updateLastUpdateTime();
+            
+            if (this.isWeChatBrowser()) {
+                this.showSuccess('使用离线数据');
+            } else {
+                this.showError('网络异常，使用离线数据');
+            }
         }
     }
 
     // 获取汇率数据
     async fetchRates(baseCurrency) {
         try {
+            // 在微信环境中直接使用备用数据，避免跨域问题
+            if (this.isWeChatBrowser()) {
+                console.log('微信环境：使用本地数据');
+                return this.getFallbackRates(baseCurrency);
+            }
+            
             let response = await fetch(`${this.baseURL}${baseCurrency}`);
             
             if (!response.ok) {
@@ -120,34 +147,85 @@ class CurrencyConverter {
         }
     }
 
+    // 检测是否在微信浏览器中
+    isWeChatBrowser() {
+        const ua = navigator.userAgent.toLowerCase();
+        return ua.indexOf('micromessenger') !== -1;
+    }
+
     // 备用汇率数据
     getFallbackRates(baseCurrency) {
         const fallbackRates = {
             'CNY': {
-                'USD': 0.14,
-                'SGD': 0.19,
-                'EUR': 0.13,
-                'CAD': 0.19,
-                'JPY': 21.0,
-                'GBP': 0.11,
-                'AUD': 0.21,
-                'HKD': 1.09,
-                'THB': 4.8
+                'USD': 0.1408,
+                'SGD': 0.1901,
+                'EUR': 0.1298,
+                'CAD': 0.1885,
+                'JPY': 20.85,
+                'GBP': 0.1123,
+                'AUD': 0.2105,
+                'HKD': 1.0985,
+                'THB': 4.815
             },
             'USD': {
-                'CNY': 7.1,
+                'CNY': 7.10,
                 'SGD': 1.35,
                 'EUR': 0.92,
-                'CAD': 1.36,
-                'JPY': 150.0,
-                'GBP': 0.79,
-                'AUD': 1.52,
-                'HKD': 7.8,
-                'THB': 35.0
+                'CAD': 1.34,
+                'JPY': 148.0,
+                'GBP': 0.798,
+                'AUD': 1.495,
+                'HKD': 7.80,
+                'THB': 34.2,
+                'CNY': 7.10
+            },
+            'SGD': {
+                'CNY': 5.26,
+                'USD': 0.741,
+                'EUR': 0.681,
+                'CAD': 0.993,
+                'JPY': 109.6,
+                'GBP': 0.591,
+                'AUD': 1.108,
+                'HKD': 5.78,
+                'THB': 25.35
+            },
+            'EUR': {
+                'CNY': 7.71,
+                'USD': 1.088,
+                'SGD': 1.468,
+                'CAD': 1.458,
+                'JPY': 160.8,
+                'GBP': 0.868,
+                'AUD': 1.626,
+                'HKD': 8.49,
+                'THB': 37.22
+            },
+            'CAD': {
+                'CNY': 5.31,
+                'USD': 0.748,
+                'SGD': 1.007,
+                'EUR': 0.686,
+                'JPY': 110.8,
+                'GBP': 0.596,
+                'AUD': 1.115,
+                'HKD': 5.84,
+                'THB': 25.54
+            },
+            'THB': {
+                'CNY': 0.208,
+                'USD': 0.0292,
+                'SGD': 0.0394,
+                'EUR': 0.0269,
+                'CAD': 0.0391,
+                'JPY': 4.33,
+                'GBP': 0.0233,
+                'AUD': 0.0437,
+                'HKD': 0.228
             }
         };
         
-        return fallbackRates[baseCurrency] || {};
+        return fallbackRates[baseCurrency] || fallbackRates['USD'];
     }
 
     // 更新默认汇率卡片
@@ -366,7 +444,21 @@ class CurrencyConverter {
 
     // 图表相关方法
     initChart() {
-        this.updateChart();
+        // 检查Chart.js是否可用
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js未加载，隐藏图表功能');
+            const chartSection = document.querySelector('.chart-section');
+            if (chartSection) {
+                chartSection.style.display = 'none';
+            }
+            return;
+        }
+        
+        console.log('初始化图表...');
+        // 延迟初始化图表，确保DOM完全加载
+        setTimeout(() => {
+            this.updateChart();
+        }, 1000);
     }
 
     updateChart() {
@@ -602,23 +694,60 @@ class CurrencyConverter {
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
-    new CurrencyConverter();
+    console.log('DOM加载完成，开始初始化应用...');
     
-    // 检测微信浏览器
-    if (isWeChatBrowser()) {
-        console.log('运行在微信浏览器中');
-        // 添加微信特有的优化
-        optimizeForWeChat();
-    }
-    
-    // 检测移动设备
-    if (isMobileDevice()) {
-        // 添加移动端特有的优化
-        optimizeForMobile();
+    try {
+        const converter = new CurrencyConverter();
+        
+        // 检测微信浏览器
+        if (isWeChatBrowser()) {
+            console.log('运行在微信浏览器中');
+            // 添加微信特有的优化
+            optimizeForWeChat();
+            
+            // 强制确保内容显示
+            setTimeout(() => {
+                const container = document.querySelector('.container');
+                if (container) {
+                    container.style.display = 'block';
+                    container.style.visibility = 'visible';
+                    container.style.opacity = '1';
+                }
+                
+                // 强制触发数据加载
+                if (converter && converter.loadDefaultRates) {
+                    converter.loadDefaultRates();
+                }
+            }, 500);
+        }
+        
+        // 检测移动设备
+        if (isMobileDevice()) {
+            // 添加移动端特有的优化
+            optimizeForMobile();
+        }
+        
+        console.log('应用初始化完成');
+        
+    } catch (error) {
+        console.error('应用初始化失败:', error);
+        
+        // 显示基本内容即使出错
+        const container = document.querySelector('.container');
+        if (container) {
+            container.style.display = 'block';
+            container.innerHTML = `
+                <div style="padding: 20px; text-align: center;">
+                    <h1>汇率查询器</h1>
+                    <p>应用正在加载中...</p>
+                    <p>如果长时间无响应，请刷新页面</p>
+                </div>
+            `;
+        }
     }
 });
 
-// 检测是否在微信浏览器中
+// 全局检测函数（供外部使用）
 function isWeChatBrowser() {
     const ua = navigator.userAgent.toLowerCase();
     return ua.indexOf('micromessenger') !== -1;
